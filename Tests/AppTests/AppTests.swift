@@ -11,7 +11,7 @@ final class AppTests: XCTestCase {
             RegisterUser(email: "joe", password: "abcd1234")
         )
         
-        try app.test(.POST, "register", headers: jsonHeader, body: body) { res in
+        try app.test(.POST, Route.register.rawValue, headers: jsonHeader, body: body) { res in
             XCTAssertEqual(res.status, .badRequest)
         }
     }
@@ -25,7 +25,7 @@ final class AppTests: XCTestCase {
             RegisterUser(email: "", password: "abcd1234")
         )
         
-        try app.test(.POST, "register", headers: jsonHeader, body: body) { res in
+        try app.test(.POST, Route.register.rawValue, headers: jsonHeader, body: body) { res in
             XCTAssertEqual(res.status, .badRequest)
         }
     }
@@ -39,7 +39,7 @@ final class AppTests: XCTestCase {
             RegisterUser(email: "joe@south.com", password: "abcd12")
         )
         
-        try app.test(.POST, "register", headers: jsonHeader, body: body) { res in
+        try app.test(.POST, Route.register.rawValue, headers: jsonHeader, body: body) { res in
             XCTAssertEqual(res.status, .badRequest)
         }
     }
@@ -53,7 +53,7 @@ final class AppTests: XCTestCase {
             RegisterUser(email: "joe@south.com", password: "abcd1234")
         )
         
-        try app.test(.POST, "register", headers: jsonHeader, body: body) { res in
+        try app.test(.POST, Route.register.rawValue, headers: jsonHeader, body: body) { res in
             XCTAssertEqual(res.status, .ok)
         }
     }

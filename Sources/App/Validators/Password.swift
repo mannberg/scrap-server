@@ -39,5 +39,5 @@ extension ValidatorResults.Password: ValidatorResult {
     }
 }
 
-fileprivate let regex = #"^(?=.*[A-Za-z])(?=.*[0-9])(?!.*[^a-zA-Z0-9_!@#$&*]).{8,20}$"#
+fileprivate let regex = "^(?=.*[A-Za-z])(?=.*[0-9])(?!.*[^a-zA-Z0-9_!@#$&*]).{8,20}$"
 
