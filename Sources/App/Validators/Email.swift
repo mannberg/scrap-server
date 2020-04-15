@@ -1,6 +1,6 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by Anders Mannberg on 2020-03-24.
 //
@@ -9,29 +9,29 @@ import Vapor
 import IsValid
 
 extension Validator where T == String {
-    public static var password: Validator<T> {
+    public static var customEmail: Validator<T> {
         .init {
-            ValidatorResults.Password(isValid: IsValid.password($0))
+            ValidatorResults.CustomEmail(isValid: IsValid.email($0))
         }
     }
 }
 
 extension ValidatorResults {
-    public struct Password {
+    public struct CustomEmail {
         public let isValid: Bool
     }
 }
 
-extension ValidatorResults.Password: ValidatorResult {
+extension ValidatorResults.CustomEmail: ValidatorResult {
     public var isFailure: Bool {
         !self.isValid
     }
-    
+
     public var successDescription: String? {
-        "is a valid password"
+        "is a valid email adress"
     }
-    
+
     public var failureDescription: String? {
-        "is not a valid password"
+        "is not a valid email adress"
     }
 }

@@ -6,14 +6,17 @@ enum Route: String {
 
 func routes(_ app: Application) throws {
     app.get { req in
-        return "It works!"
+        return #"{"name":"test"}"#
     }
     
-    app.post(.constant(Route.register.rawValue)) { req -> HTTPStatus in
-        try RegisterUser.validate(req)
-        _ = try req.content.decode(RegisterUser.self)
+    app.post(.constant(Route.register.rawValue)) { req -> String in
         
-        return .ok
+            try RegisterUser.validate(req)
+            _ = try req.content.decode(RegisterUser.self)
+        
+        return #"{"name":"test"}"#
+        
+//        return .ok
     }
 }
 
@@ -28,7 +31,7 @@ extension RegisterUser: Content {}
 
 extension RegisterUser: Validatable {
     static func validations(_ validations: inout Validations) {
-        validations.add("email", as: String.self, is: .email)
+        validations.add("email", as: String.self, is: .customEmail)
         validations.add("password", as: String.self, is: .password)
     }
 }
