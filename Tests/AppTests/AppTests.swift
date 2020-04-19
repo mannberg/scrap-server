@@ -8,7 +8,11 @@ final class AppTests: XCTestCase {
         try configure(app)
         
         let body = requestBody(from:
-            RegisterUser(email: "joe", password: "abcd1234")
+            RegisterUser(
+                displayName: "Joe",
+                email: "joe",
+                password: "abcd1234"
+            )
         )
         
         try app.test(.POST, Route.register.rawValue, headers: jsonHeader, body: body) { res in
@@ -22,7 +26,11 @@ final class AppTests: XCTestCase {
         try configure(app)
         
         let body = requestBody(from:
-            RegisterUser(email: "", password: "abcd1234")
+            RegisterUser(
+                displayName: "Joe",
+                email: "",
+                password: "abcd1234"
+            )
         )
         
         try app.test(.POST, Route.register.rawValue, headers: jsonHeader, body: body) { res in
@@ -36,7 +44,11 @@ final class AppTests: XCTestCase {
         try configure(app)
         
         let body = requestBody(from:
-            RegisterUser(email: "joe@south.com", password: "abcd12")
+            RegisterUser(
+                displayName: "Joe",
+                email: "joe@south.com",
+                password: "abcd12"
+            )
         )
         
         try app.test(.POST, Route.register.rawValue, headers: jsonHeader, body: body) { res in
@@ -50,11 +62,32 @@ final class AppTests: XCTestCase {
         try configure(app)
         
         let body = requestBody(from:
-            RegisterUser(email: "joe@south.com", password: "abcd1234")
+            RegisterUser(
+                displayName: "Joe",
+                email: "joe@south.com",
+                password: "abcd1234")
         )
         
         try app.test(.POST, Route.register.rawValue, headers: jsonHeader, body: body) { res in
             XCTAssertEqual(res.status, .ok)
+        }
+    }
+    
+    func testRegisterUser_invalidDisplayNameEqualsBadRequest() throws {
+        let app = Application(.testing)
+        defer { app.shutdown() }
+        try configure(app)
+        
+        let body = requestBody(from:
+            RegisterUser(
+                displayName: "",
+                email: "joe@south.com",
+                password: "abcd1234"
+            )
+        )
+        
+        try app.test(.POST, Route.register.rawValue, headers: jsonHeader, body: body) { res in
+            XCTAssertEqual(res.status, .badRequest)
         }
     }
 }
