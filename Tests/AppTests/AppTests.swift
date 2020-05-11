@@ -1,5 +1,6 @@
 @testable import App
 import XCTVapor
+import scrap_data_models
 
 final class AppTests: XCTestCase {
     func testRegisterUser_badEmailEqualsBadRequest() throws {

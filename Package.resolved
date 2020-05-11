@@ -47,6 +47,15 @@
         }
       },
       {
+        "package": "scrap-data-models",
+        "repositoryURL": "https://github.com/mannberg/scrap-data-models",
+        "state": {
+          "branch": null,
+          "revision": "65036b920cec98d85d359856c827417305a6d61c",
+          "version": "1.0.0"
+        }
+      },
+      {
         "package": "swift-backtrace",
         "repositoryURL": "https://github.com/swift-server/swift-backtrace.git",
         "state": {

@@ -1,4 +1,5 @@
 import Vapor
+import scrap_data_models
 
 enum Route: String {
     case register
@@ -20,18 +21,10 @@ func routes(_ app: Application) throws {
     }
 }
 
-//TODO: Put models in separate framework
-
-struct RegisterUser: Codable {
-    var displayName: String
-    var email: String
-    var password: String
-}
-
 extension RegisterUser: Content {}
 
 extension RegisterUser: Validatable {
-    static func validations(_ validations: inout Validations) {
+    public static func validations(_ validations: inout Validations) {
         validations.add("displayName", as: String.self, is: .displayName)
         validations.add("email", as: String.self, is: .customEmail)
         validations.add("password", as: String.self, is: .password)
