@@ -29,12 +29,57 @@
         }
       },
       {
+        "package": "fluent",
+        "repositoryURL": "https://github.com/vapor/fluent.git",
+        "state": {
+          "branch": null,
+          "revision": "dba22d5a6115092482669efe5492d800ace4da38",
+          "version": "4.0.0-rc.2.2"
+        }
+      },
+      {
+        "package": "fluent-kit",
+        "repositoryURL": "https://github.com/vapor/fluent-kit.git",
+        "state": {
+          "branch": null,
+          "revision": "c73570c85d6661c04b8ea29a9f8eede67f6d4aae",
+          "version": "1.0.0-rc.1.26"
+        }
+      },
+      {
+        "package": "fluent-postgres-driver",
+        "repositoryURL": "https://github.com/vapor/fluent-postgres-driver.git",
+        "state": {
+          "branch": null,
+          "revision": "2df7722d2bddc470a9b7080b8d88c9976f237a81",
+          "version": "2.0.0-rc.2"
+        }
+      },
+      {
         "package": "IsValid",
         "repositoryURL": "https://github.com/mannberg/IsValid.git",
         "state": {
           "branch": null,
           "revision": "f3fab23b452367815ae9a4a541047c6821911eed",
           "version": "1.0.2"
+        }
+      },
+      {
+        "package": "postgres-kit",
+        "repositoryURL": "https://github.com/vapor/postgres-kit.git",
+        "state": {
+          "branch": null,
+          "revision": "e43a32baec80ebbcfed4d0330d0be50eb73434c7",
+          "version": "2.0.1"
+        }
+      },
+      {
+        "package": "postgres-nio",
+        "repositoryURL": "https://github.com/vapor/postgres-nio.git",
+        "state": {
+          "branch": null,
+          "revision": "25aa31fdd55ea119edee270ce4bd7bd4bd59fdf7",
+          "version": "1.1.0"
         }
       },
       {
@@ -53,6 +98,15 @@
           "branch": null,
           "revision": "65036b920cec98d85d359856c827417305a6d61c",
           "version": "1.0.0"
+        }
+      },
+      {
+        "package": "sql-kit",
+        "repositoryURL": "https://github.com/vapor/sql-kit.git",
+        "state": {
+          "branch": null,
+          "revision": "1e0239616134dd45fa4894bfe83750d196e3a83d",
+          "version": "3.0.0"
         }
       },
       {

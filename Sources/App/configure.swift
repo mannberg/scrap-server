@@ -1,4 +1,6 @@
 import Vapor
+import Fluent
+import FluentPostgresDriver
 
 // configures your application
 public func configure(_ app: Application) throws {
@@ -13,6 +15,15 @@ public func configure(_ app: Application) throws {
     
     app.middleware.use(CORSMiddleware(configuration: config))
     app.middleware.use(ErrorMiddleware.default(environment: .development))
-    // register routes
+    app.passwords.use(.bcrypt)
+    app.migrations.add(CreateStoredUser())
+    app.databases.use(
+        .postgres(
+            hostname: "127.0.0.1",
+            username: "vapor",
+            password: "password",
+            database: "vapor"), as: .psql
+    )
+    
     try routes(app)
 }

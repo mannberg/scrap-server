@@ -9,12 +9,17 @@ let package = Package(
     dependencies: [
         // 💧 A server-side Swift web framework.
         .package(url: "https://github.com/vapor/vapor.git", from: "4.0.0-rc"),
+        .package(url: "https://github.com/vapor/fluent.git", from: "4.0.0-beta"),
+        .package(url: "https://github.com/vapor/fluent-postgres-driver.git", from: "2.0.0-beta"),
         .package(url: "https://github.com/mannberg/IsValid.git", from: "1.0.2"),
-        .package(url: "https://github.com/mannberg/scrap-data-models", from: "1.0.0")
+        .package(url: "https://github.com/mannberg/scrap-data-models", from: "1.0.0"),
+        .package(url: "https://github.com/vapor/fluent-kit.git", from: "1.0.0-rc.1.19"),
     ],
     targets: [
         .target(name: "App", dependencies: [
             .product(name: "Vapor", package: "vapor"),
+            .product(name: "Fluent", package: "fluent"),
+            .product(name: "FluentPostgresDriver", package: "fluent-postgres-driver"),
             .product(name: "IsValid", package: "IsValid"),
             .product(name: "scrap-data-models", package: "scrap-data-models")
         ]),
@@ -22,6 +27,7 @@ let package = Package(
         .testTarget(name: "AppTests", dependencies: [
             .target(name: "App"),
             .product(name: "XCTVapor", package: "vapor"),
+            .product(name: "XCTFluent", package: "fluent-kit")
         ])
     ]
 )
