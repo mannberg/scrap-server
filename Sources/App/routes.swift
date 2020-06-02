@@ -1,6 +1,6 @@
 import Vapor
 import Fluent
-//import scrap_data_models
+import scrap_data_models
 
 enum Route: String {
     case register
@@ -60,21 +60,6 @@ extension EventLoopFuture where Value == StoredUser {
     }
 }
 
-struct UserRegistrationCandidate: Codable {
-    var displayName: String
-    var email: String
-    var password: String
-    
-    public init(
-        displayName: String,
-        email: String,
-        password: String
-    ) {
-        self.displayName = displayName
-        self.email = email
-        self.password = password
-    }
-}
 extension UserRegistrationCandidate: Content {}
 
 final class StoredUser: Model {

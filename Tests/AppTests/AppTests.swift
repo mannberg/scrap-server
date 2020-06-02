@@ -4,8 +4,6 @@ import XCTFluent
 import Fluent
 import scrap_data_models
 
-extension RegisterUser: Content {}
-
 final class AppTests: XCTestCase {
     func testRegisterUser_badEmailEqualsBadRequest() throws {
         let app = Application(.testing)
@@ -13,7 +11,7 @@ final class AppTests: XCTestCase {
         try configure(app)
         
         let body = requestBody(from:
-            RegisterUser(
+            UserRegistrationCandidate(
                 displayName: "Joe",
                 email: "joe",
                 password: "abcd1234"
@@ -29,7 +27,7 @@ final class AppTests: XCTestCase {
         try configure(app)
         
         let body = requestBody(from:
-            RegisterUser(
+            UserRegistrationCandidate(
                 displayName: "Joe",
                 email: "",
                 password: "abcd1234"
@@ -45,7 +43,7 @@ final class AppTests: XCTestCase {
         try configure(app)
         
         let body = requestBody(from:
-            RegisterUser(
+            UserRegistrationCandidate(
                 displayName: "Joe",
                 email: "joe@south.com",
                 password: "abcd12"
@@ -133,7 +131,7 @@ final class AppTests: XCTestCase {
         try configure(app)
         
         let body = requestBody(from:
-            RegisterUser(
+            UserRegistrationCandidate(
                 displayName: "",
                 email: "joe@south.com",
                 password: "abcd1234"
