@@ -4,30 +4,40 @@ import scrap_data_models
 
 enum Route: String {
     case register
+    case login
 }
 
 func routes(_ app: Application) throws {
+    
+    //MARK: Hello!
     app.get { req in
         return #"{"name":"test"}"#
     }
     
-    app.post(.constant(Route.register.rawValue)) { req -> EventLoopFuture<StoredUser> in
+    //MARK: Register
+    app.post(.constant(Route.register.rawValue)) { req -> EventLoopFuture<UserToken> in
         try UserRegistrationCandidate.validate(req)
         let candidate = try req.content.decode(UserRegistrationCandidate.self)
         
-        let sfx = SideEffects.RegisterUser(
-            candidate: candidate,
-            candidateCountInStorage: {
-                StoredUser
-                    .query(on: req.db)
-                    .filter(\.$email == candidate.email)
-                    .count()
-            },
-            hash: req.password.hash,
-            store: { user in user.create(on: req.db).map { user } }
-        )
+        return EventLoopFuture<User>
+            .storeUser(sideEffects: .live(req: req, candidate: candidate))
+            .generateLoginToken(sideEffects: .live(req: req))
+    }
+    
+    //MARK: Login
+    let passwordProtected = app.grouped(User.authenticator())
+    passwordProtected.post(.constant(Route.login.rawValue)) { req -> EventLoopFuture<UserToken> in
+        let user = try req.auth.require(User.self)
         
-        return .storedUser(sfx: sfx)
+        return req.eventLoop
+            .makeSucceededFuture(user)
+            .generateLoginToken(sideEffects: .live(req: req))
+    }
+    
+    //MARK: Test
+    let tokenProtected = app.grouped(UserToken.authenticator())
+    tokenProtected.get("me") { req -> User in
+        try req.auth.require(User.self)
     }
 }
 
@@ -36,80 +46,71 @@ enum SideEffects {
         let candidate: UserRegistrationCandidate
         var candidateCountInStorage: () -> EventLoopFuture<Int>
         var hash: (String) throws -> String
-        var store: (StoredUser) -> EventLoopFuture<StoredUser>
+        var store: (User) -> EventLoopFuture<User>
+    }
+    
+    struct GenerateToken {
+        var generateToken: (User) throws -> UserToken
+        var save: (UserToken) -> EventLoopFuture<UserToken>
     }
 }
 
-extension EventLoopFuture where Value == StoredUser {
-    static func storedUser(sfx: SideEffects.RegisterUser) -> EventLoopFuture<StoredUser> {
+extension SideEffects.GenerateToken {
+    static func live(req: Request) -> SideEffects.GenerateToken {
+        SideEffects.GenerateToken(
+            generateToken: { user in try user.generateToken() },
+            save: { token in token.save(on: req.db).map { token }}
+        )
+    }
+}
+
+extension SideEffects.RegisterUser {
+    static func live(req: Request, candidate: UserRegistrationCandidate) -> SideEffects.RegisterUser {
+        SideEffects.RegisterUser(
+            candidate: candidate,
+            candidateCountInStorage: {
+                User
+                    .query(on: req.db)
+                    .filter(\.$email == candidate.email)
+                    .count()
+            },
+            hash: req.password.hash,
+            store: { user in user.create(on: req.db).map { user } }
+        )
+    }
+}
+
+extension EventLoopFuture where Value == User {
+    static func storeUser(sideEffects: SideEffects.RegisterUser) -> EventLoopFuture<User> {
         
-        return sfx.candidateCountInStorage()
-                .flatMapThrowing { (count: Int) -> StoredUser in
-                    guard count == 0 else { throw Abort(.conflict) }
+        return sideEffects.candidateCountInStorage()
+                .flatMapThrowing { (count: Int) -> User in
+                    guard count == 0 else { throw Abort(.conflict, reason: "Email adress already registered.") }
                     
-                    let passwordDigest = try sfx.hash(sfx.candidate.password)
-                    let user = StoredUser(
-                        displayName: sfx.candidate.displayName,
-                        email: sfx.candidate.email,
+                    let passwordDigest = try sideEffects.hash(sideEffects.candidate.password)
+                    let user = User(
+                        displayName: sideEffects.candidate.displayName,
+                        email: sideEffects.candidate.email,
                         password: passwordDigest
                     )
                     
                     return user
                 }
-                .flatMap { user in sfx.store(user) }
+                .flatMap { user in sideEffects.store(user) }
+    }
+    
+    func generateLoginToken(sideEffects: SideEffects.GenerateToken) -> EventLoopFuture<UserToken> {
+        self.flatMapThrowing { user in
+            try sideEffects.generateToken(user)
+        }.flatMap { token in
+            sideEffects.save(token)
+        }
     }
 }
 
 extension UserRegistrationCandidate: Content {}
 
-final class StoredUser: Model {
-    static let schema = "users"
-
-    @ID(key: .id)
-    var id: UUID?
-
-    @Field(key: "display_name")
-    var displayName: String
-    
-    @Field(key: "email")
-    var email: String
-    
-    @Field(key: "password")
-    var password: String
-
-    init() { }
-
-    init(
-        id: UUID? = nil,
-        displayName: String,
-        email: String,
-        password: String
-    ) {
-        self.id = id
-        self.displayName = displayName
-        self.email = email
-        self.password = password
-    }
-}
-
-struct CreateStoredUser: Migration {
-    // Prepares the database for storing Galaxy models.
-    func prepare(on database: Database) -> EventLoopFuture<Void> {
-        database.schema("users")
-            .id()
-            .field("display_name", .string)
-            .field("email", .string)
-            .field("password", .string)
-            .create()
-    }
-
-    // Optionally reverts the changes made in the prepare method.
-    func revert(on database: Database) -> EventLoopFuture<Void> {
-        database.schema("users").delete()
-    }
-}
-
-extension StoredUser: Content {}
+extension User: Content {}
 
 extension UserRegistrationCandidate: Validatable {
     public static func validations(_ validations: inout Validations) {

@@ -17,6 +17,7 @@ public func configure(_ app: Application) throws {
     app.middleware.use(ErrorMiddleware.default(environment: .development))
     app.passwords.use(.bcrypt)
     app.migrations.add(CreateStoredUser())
+    app.migrations.add(UserToken.Migration())
     app.databases.use(
         .postgres(
             hostname: "127.0.0.1",

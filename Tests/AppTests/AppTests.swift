@@ -58,21 +58,10 @@ final class AppTests: XCTestCase {
         defer { app.shutdown() }
         try configure(app)
         
-        let user = UserRegistrationCandidate(
-                displayName: "Joe",
-                email: "joe@south.com",
-                password: "abcd1234"
-        )
+        let mockRequest = Request.mock(for: app)
         
-        let mockRequest = Request(
-            application: app,
-            method: .GET,
-            url: .init(path: ""),
-            on: app.eventLoopGroup.next()
-        )
-        
-        let sfx = SideEffects.RegisterUser(
-            candidate: user,
+        let sideEffects = SideEffects.RegisterUser(
+            candidate: .validCandidate,
             candidateCountInStorage: { mockRequest.eventLoop.makeSucceededFuture(0) },
             hash: { $0 },
             store: { user in mockRequest.eventLoop.makeSucceededFuture(user) }
@@ -80,8 +69,37 @@ final class AppTests: XCTestCase {
         
         do {
             _ = try EventLoopFuture
-                .storedUser(sfx: sfx)
+                .storeUser(sideEffects: sideEffects)
                 .wait()
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testRegisterUser_passwordHashingIsPerformed() throws {
+        let app = Application(.testing)
+        defer { app.shutdown() }
+        try configure(app)
+        
+        let mockRequest = Request.mock(for: app)
+        
+        var didPerformHash = false
+        
+        let sideEffects = SideEffects.RegisterUser(
+            candidate: .validCandidate,
+            candidateCountInStorage: { mockRequest.eventLoop.makeSucceededFuture(0) },
+            hash: { _ in
+                didPerformHash = true
+                return ""
+            },
+            store: { user in mockRequest.eventLoop.makeSucceededFuture(user) }
+        )
+        
+        do {
+            _ = try EventLoopFuture
+                .storeUser(sideEffects: sideEffects)
+                .wait()
+            XCTAssert(didPerformHash)
         } catch {
             XCTFail()
         }
@@ -92,21 +110,10 @@ final class AppTests: XCTestCase {
         defer { app.shutdown() }
         try configure(app)
         
-        let user = UserRegistrationCandidate(
-                displayName: "Joe",
-                email: "joe@south.com",
-                password: "abcd1234"
-        )
+        let mockRequest = Request.mock(for: app)
         
-        let mockRequest = Request(
-            application: app,
-            method: .GET,
-            url: .init(path: ""),
-            on: app.eventLoopGroup.next()
-        )
-        
-        let sfx = SideEffects.RegisterUser(
-            candidate: user,
+        let sideEffects = SideEffects.RegisterUser(
+            candidate: .validCandidate,
             candidateCountInStorage: { mockRequest.eventLoop.makeSucceededFuture(1) },
             hash: { $0 },
             store: { user in mockRequest.eventLoop.makeSucceededFuture(user) }
@@ -116,7 +123,7 @@ final class AppTests: XCTestCase {
         
         do {
             _ = try EventLoopFuture
-                .storedUser(sfx: sfx)
+                .storeUser(sideEffects: sideEffects)
                 .wait()
         } catch {
             didThrowException = true
@@ -139,6 +146,37 @@ final class AppTests: XCTestCase {
         )
         
         try app.post(body: body, withExpectedStatus: .badRequest)
+    }
+    
+    func testGenerateToken_tokenIsGeneratedAndSaved() throws {
+        let app = Application(.testing)
+        defer { app.shutdown() }
+        try configure(app)
+        
+        let mockRequest = Request.mock(for: app)
+        
+        var didPerformGenerateToken = false
+        var didSaveToken = false
+        
+        let sideEffects = SideEffects.GenerateToken(
+            generateToken: { _ in
+                didPerformGenerateToken = true
+                return UserToken()
+            },
+            save: { _ in
+                didSaveToken = true
+                return mockRequest.eventLoop.makeSucceededFuture(UserToken())
+            }
+        )
+        
+        do {
+            _ = try mockRequest.eventLoop.makeSucceededFuture(User())
+                .generateLoginToken(sideEffects: sideEffects)
+                .wait()
+            XCTAssert(didPerformGenerateToken && didSaveToken)
+        } catch {
+            XCTFail()
+        }
     }
 }
 
@@ -169,5 +207,26 @@ fileprivate extension Application {
         ) { res in
             XCTAssertEqual(res.status, status)
         }
+    }
+}
+
+fileprivate extension UserRegistrationCandidate {
+    static var validCandidate: UserRegistrationCandidate {
+        UserRegistrationCandidate(
+            displayName: "Joe",
+            email: "joe@south.com",
+            password: "abcd1234"
+        )
+    }
+}
+
+fileprivate extension Request {
+    static func mock(for app: Application) -> Request {
+        Request(
+            application: app,
+            method: .GET,
+            url: .init(path: ""),
+            on: app.eventLoopGroup.next()
+        )
     }
 }
