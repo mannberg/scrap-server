@@ -8,12 +8,12 @@ let package = Package(
     ],
     dependencies: [
         // 💧 A server-side Swift web framework.
-        .package(url: "https://github.com/vapor/vapor.git", from: "4.0.0-rc"),
-        .package(url: "https://github.com/vapor/fluent.git", from: "4.0.0-beta"),
-        .package(url: "https://github.com/vapor/fluent-postgres-driver.git", from: "2.0.0-beta"),
+        .package(url: "https://github.com/vapor/vapor.git", from: "4.0.0"),
+        .package(url: "https://github.com/vapor/fluent.git", from: "4.0.0"),
+        .package(url: "https://github.com/vapor/fluent-postgres-driver.git", from: "2.0.0"),
         .package(url: "https://github.com/mannberg/IsValid.git", from: "1.0.2"),
         .package(url: "https://github.com/mannberg/scrap-data-models", from: "1.0.0"),
-        .package(url: "https://github.com/vapor/fluent-kit.git", from: "1.0.0-rc.1.19"),
+        .package(url: "https://github.com/vapor/fluent-kit.git", from: "1.0.0"),
     ],
     targets: [
         .target(name: "App", dependencies: [
