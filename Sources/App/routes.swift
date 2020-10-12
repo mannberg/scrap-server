@@ -9,13 +9,9 @@ enum Route: String {
 
 func routes(_ app: Application) throws {
     
-    //MARK: Hello!
-    app.get { req in
-        return #"{"name":"test"}"#
-    }
-    
     //MARK: Register
     app.post(.constant(Route.register.rawValue)) { req -> EventLoopFuture<UserToken> in
+        
         try UserRegistrationCandidate.validate(req)
         let candidate = try req.content.decode(UserRegistrationCandidate.self)
         
@@ -26,6 +22,7 @@ func routes(_ app: Application) throws {
     
     //MARK: Login
     let passwordProtected = app.grouped(User.authenticator())
+    
     passwordProtected.post(.constant(Route.login.rawValue)) { req -> EventLoopFuture<UserToken> in
         let user = try req.auth.require(User.self)
         
@@ -36,47 +33,9 @@ func routes(_ app: Application) throws {
     
     //MARK: Test
     let tokenProtected = app.grouped(UserToken.authenticator())
+    
     tokenProtected.get("me") { req -> User in
         try req.auth.require(User.self)
-    }
-}
-
-enum SideEffects {
-    struct RegisterUser {
-        let candidate: UserRegistrationCandidate
-        var candidateCountInStorage: () -> EventLoopFuture<Int>
-        var hash: (String) throws -> String
-        var store: (User) -> EventLoopFuture<User>
-    }
-    
-    struct GenerateToken {
-        var generateToken: (User) throws -> UserToken
-        var save: (UserToken) -> EventLoopFuture<UserToken>
-    }
-}
-
-extension SideEffects.GenerateToken {
-    static func live(req: Request) -> SideEffects.GenerateToken {
-        SideEffects.GenerateToken(
-            generateToken: { user in try user.generateToken() },
-            save: { token in token.save(on: req.db).map { token }}
-        )
-    }
-}
-
-extension SideEffects.RegisterUser {
-    static func live(req: Request, candidate: UserRegistrationCandidate) -> SideEffects.RegisterUser {
-        SideEffects.RegisterUser(
-            candidate: candidate,
-            candidateCountInStorage: {
-                User
-                    .query(on: req.db)
-                    .filter(\.$email == candidate.email)
-                    .count()
-            },
-            hash: req.password.hash,
-            store: { user in user.create(on: req.db).map { user } }
-        )
     }
 }
 
@@ -96,15 +55,13 @@ extension EventLoopFuture where Value == User {
                     
                     return user
                 }
-                .flatMap { user in sideEffects.store(user) }
+                .flatMap(sideEffects.storeUser)
     }
     
     func generateLoginToken(sideEffects: SideEffects.GenerateToken) -> EventLoopFuture<UserToken> {
-        self.flatMapThrowing { user in
-            try sideEffects.generateToken(user)
-        }.flatMap { token in
-            sideEffects.save(token)
-        }
+        self
+            .flatMapThrowing(sideEffects.generateToken)
+            .flatMap(sideEffects.saveToken)
     }
 }
 

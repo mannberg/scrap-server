@@ -64,7 +64,7 @@ final class AppTests: XCTestCase {
             candidate: .validCandidate,
             candidateCountInStorage: { mockRequest.eventLoop.makeSucceededFuture(0) },
             hash: { $0 },
-            store: { user in mockRequest.eventLoop.makeSucceededFuture(user) }
+            storeUser: { user in mockRequest.eventLoop.makeSucceededFuture(user) }
         )
         
         do {
@@ -92,7 +92,7 @@ final class AppTests: XCTestCase {
                 didPerformHash = true
                 return ""
             },
-            store: { user in mockRequest.eventLoop.makeSucceededFuture(user) }
+            storeUser: { user in mockRequest.eventLoop.makeSucceededFuture(user) }
         )
         
         do {
@@ -116,7 +116,7 @@ final class AppTests: XCTestCase {
             candidate: .validCandidate,
             candidateCountInStorage: { mockRequest.eventLoop.makeSucceededFuture(1) },
             hash: { $0 },
-            store: { user in mockRequest.eventLoop.makeSucceededFuture(user) }
+            storeUser: { user in mockRequest.eventLoop.makeSucceededFuture(user) }
         )
         
         var didThrowException = false
@@ -163,7 +163,7 @@ final class AppTests: XCTestCase {
                 didPerformGenerateToken = true
                 return UserToken()
             },
-            save: { _ in
+            saveToken: { _ in
                 didSaveToken = true
                 return mockRequest.eventLoop.makeSucceededFuture(UserToken())
             }
